@@ -2,71 +2,78 @@ import livros from "../models/Livro.js";
 
 class LivroController {
 
-    static listarLivros = (req, res) => {
-        livros.find()
-        .populate('autor')
-        .exec((err, livros) => {
-            res.status(200).json(livros)
-        })
-    }
+    static listarLivros = async(req, res) => {
 
-    static listarLivrosPorId = (req, res) => {
-        const id = req.params.id
+        try{
+            const procurarLivros = await livros.find()
+                .populate("autor")
+                .exec();
 
-        livros.findById(id) 
-        .populate('autor', 'nome')
-        .exec((err, livros) => {
-            if(err){
-                res.status(400).send({message: `${err.message} - ID do Livro não localizada`})
-            }else{
-                res.status(200).send(livros)
-            }
-        })
-    }
+            res.status(200).json(procurarLivros);
+        }catch(erro){
+            res.status(500).json({ message: "Erro interno no servidor" });
+        }
+    };
 
-    static cadastrarLivro = (req, res)=> {
-        let livro = new livros(req.body);
-
-        livro.save((err) => {
-            if(err){
-                res.status(500).send({message: `${err.message} - falha ao cadastar livro.`})
-            }else{
-                res.status(201).send(livro.toJSON())
-            }
-        })
-    }
-
-    static atualizarLivro = (req, res) => {
+    static listarLivrosPorId = async(req, res) => {
         const id = req.params.id;
 
-        livros.findByIdAndUpdate(id, {$set: req.body}, (err) => {
-            if(!err){
-                res.status(200).send({message: 'Livro atualizado com sucesso'})
-            }else {
-                res.status(500).send({message: err.message})
-            }
-        })
-    }
+        try{
+            const procurarLivrosId = await livros.findById(id)
+                .populate("autor", "nome")
+                .exec();
+            res.status(200).send(procurarLivrosId);
+        }catch(erro){
+            res.status(400).send({message: `${erro.message} - ID do Livro não localizada`});
+        }
+    };
 
-    static excluirLivro = (req, res) => {
-        const id = req.params.id
+    static cadastrarLivro = async (req, res)=> {
+        let livro = new livros(req.body);
 
-        livros.findByIdAndDelete(id, (err) => {
-            if(!err){
-                res.status(200).send({message: "livro removida com sucesso"})
-            }else{
-                res.status(500).send({message: err.message})
-            }
-        })
-    }
+        try{
+            const livroCadastro = await livro.save();
 
-    static listarLivroPorEditora = (req, res) => {
-        const editora = req.query.editora
+            res.status(201).send(livroCadastro);
+        }catch(erro){
+            res.status(500).send({message: `${erro.message} - falha ao cadastar livro.`});
+        }
+    };
 
-        livros.find({'editora': editora}, {}, (err, livros) => {
-            res.status(200).send(livros);
-        })
-    }
+    static atualizarLivro = async(req, res) => {
+        const id = req.params.id;
+
+        try{
+            await livros.findByIdAndUpdate(id, {$set: req.body});
+            res.status(200).send({message: "Livro atualizado com sucesso"});
+        }catch(erro){
+            res.status(500).send({message: erro.message});
+        }
+    
+    };
+
+    static excluirLivro = async (req, res) => {
+        const id = req.params.id;
+
+        try{
+            await livros.findByIdAndDelete(id);
+            res.status(200).send({message: "livro removida com sucesso"});
+        }catch(erro){
+            res.status(500).send({message: erro.message});
+        }   
+    };
+
+    static listarLivroPorEditora = async (req, res) => {
+        try {
+            const editora = req.query.editora;
+    
+            const livrosResultado = await livros.find({"editora": editora});
+    
+            res.status(200).send(livrosResultado);
+        } catch (erro) {
+            res.status(500).json({ message: "Erro interno no servidor" });
+        }
+    };
 }
 
-export default LivroController
+export default LivroController;
