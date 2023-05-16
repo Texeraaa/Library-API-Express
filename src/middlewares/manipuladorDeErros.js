@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import ErroBase from "../erros/ErroBase.js";
 
 function manipuladorDeErros(erro, req, res, next){
         if(erro instanceof mongoose.Error.CastError){
@@ -10,7 +11,7 @@ function manipuladorDeErros(erro, req, res, next){
 
             res.status(400).send({message: `Os seguintes erros foram encrontrador: ${mensagensErro}`})
         }else{
-            res.status(500).send({message: "erro interno do servidor"});
+            new ErroBase().enviarResposta(res);
         }
     }
 

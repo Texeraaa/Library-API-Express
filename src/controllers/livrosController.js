@@ -2,20 +2,23 @@ import livros from "../models/Livro.js";
 
 class LivroController {
 
-    static listarLivros = async(req, res) => {
+    static listarLivros = async(req, res, next) => {
 
         try{
+            throw new Error();
+
+
             const procurarLivros = await livros.find()
                 .populate("autor")
                 .exec();
 
             res.status(200).json(procurarLivros);
         }catch(erro){
-            res.status(500).json({ message: "Erro interno no servidor" });
+            next(erro)
         }
     };
 
-    static listarLivrosPorId = async(req, res) => {
+    static listarLivrosPorId = async(req, res, next) => {
         const id = req.params.id;
 
         try{
@@ -24,7 +27,7 @@ class LivroController {
                 .exec();
             res.status(200).send(procurarLivrosId);
         }catch(erro){
-            res.status(400).send({message: `${erro.message} - ID do Livro não localizada`});
+            next(erro)
         }
     };
 

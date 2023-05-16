@@ -12,7 +12,10 @@ const livroSchema = new mongoose.Schema(
             ref: "autores",
             required: [true, "O autor é obrigatorio"] 
         },
-        editora: {type: String, required: true},
+        editora: {
+            type: String, 
+            required: [true, "A editora é obrigatória"]
+        },
         numeroPaginas: {type: Number}
     }
 );
