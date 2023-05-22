@@ -10,7 +10,7 @@ class ErroValidacao extends RequisicaoIncorreta{
 
 
 
-        super(`Os seguintes erros foram encrontrador: ${mensagensErro}`);
+        super(`Os seguintes erros foram encrontrados: ${mensagensErro}`);
     }
 }
 
