@@ -1,15 +1,15 @@
-import {livros} from "../models/index.js";
+import {autores, livros} from "../models/index.js";
 
 class LivroController {
 
     static listarLivros = async(req, res, next) => {
 
         try{
-            const procurarLivros = await livros.find()
-                .populate("autor")
-                .exec();
+            const buscaLivros = livros.find();
+            
+            req.resultado = buscaLivros;
 
-            res.status(200).json(procurarLivros);
+            next();
         }catch(erro){
             next(erro)
         }
@@ -65,20 +65,53 @@ class LivroController {
 
     static listarLivroPorFiltro = async (req, res, next) => {
         try {
-            const { editora, titulo } = req.query;
-    
-            const busca = {};
+            const busca = await processaBusca(req.query);
 
-            if (editora) busca.editora = editora;
-            if (titulo) busca.titulo = titulo
+            if (busca !== null){
+                const livrosResultado = livros
+                .find(busca)
+                .populate("autor")
 
-            const livrosResultado = await livros.find(busca);
+                req.resultado = livrosResultado
+
+                next()
+
+            }else{
+                res.status(200).send([]);
+            }
     
-            res.status(200).send(livrosResultado);
         } catch (erro) {
-            next(erro)
+            next(erro);
         }
     };
+}
+
+async function processaBusca(params){
+    const { editora, titulo, minPaginas, maxPaginas, nomeAutor } = params;
+
+        // const regex = new RegExp(titulo, "i")
+
+        let  busca = {};
+
+        if (editora) busca.editora = editora;
+        if (titulo) busca.titulo = { $regex: titulo, $options: "i"};
+
+        if (minPaginas || maxPaginas) busca.numeroPaginas = {}
+
+        if (minPaginas) busca.numeroPaginas.$gte = minPaginas
+        if (maxPaginas) busca.numeroPaginas.$lte = maxPaginas
+
+        if(nomeAutor){
+            const autor = await autores.findOne({ nome: nomeAutor })
+            
+            if(autor !== null){
+                busca.autor = autor._id;
+            }else{
+                busca = null;
+            }
+        }
+
+        return busca;
 }
 
 export default LivroController;
